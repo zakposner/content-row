@@ -1,0 +1,133 @@
+{% comment %} 
+    === TODO === 
+        - full screen height
+{% endcomment %}
+
+
+{% comment %} 
+    @return     (object) settings_object - either block, section, or settings
+{% endcomment %}
+{% include 'onyx-fn-detect-settings' %}
+
+{% comment %} =================================
+                Schema 
+================================= {% endcomment %}
+
+{% comment %} --- Custom --- {% endcomment %}
+{%- assign custom_row_classes           = custom_row_classes            | default: '' -%}
+
+{% comment %} --- Section --- {% endcomment %}
+{%- assign section_margin_top           = section_margin_top            | default: false -%}
+{%- assign section_margin_bottom        = section_margin_bottom         | default: false -%}
+{%- assign section_custom_class         = section_custom_class          | default: false -%}
+
+{% comment %} --- Row --- {% endcomment %}
+{%- assign row_content_width            = row_content_width             | default: false -%}
+{%- assign row_height                   = row_height                    | default: false -%}
+{%- assign row_padding_top              = row_padding_top               | default: false -%}
+{%- assign row_padding_bottom           = row_padding_bottom            | default: false -%}
+
+{% comment %} --- Background --- {% endcomment %}
+{%- assign background_overlay_color     = background_overlay_color      | default: false -%}
+{%- assign background_overlay_opacity   = background_overlay_opacity    | default: false -%}
+{%- assign background_image             = background_image              | default: false -%}
+{%- assign background_image_position    = background_image_position     | default: false -%}
+{%- assign background_content           = background_content            | default: false -%}
+
+
+
+{% comment %} =================================
+                Parse Schema 
+================================= {% endcomment %}
+
+{% comment %} 
+    @return     (string) section_classes - sets margin. applied to .row
+{% endcomment %}
+{% include 'schema-parse-section' %}
+
+{% comment %} 
+    @return     (string) row_classes - set the height, width, and padding. applied to .row
+                (css) row_height_styles - sets the min-height, max-height. applied to .row
+                (css) height_setter_styles - custom px, custom aspect ratio. applied to .row__height-setter
+{% endcomment %}
+{% include 'schema-parse-row' %}
+
+{% comment %} 
+    @return     (css) overlay_styles - background color, opacity. applied to .row__overlay
+                (string) background_image_src - applied to .row__bg-image
+                (css) background_styles - background-image, background-position
+{% endcomment %}
+{% include 'schema-parse-custom-background' %}
+
+
+{% comment %} =================================
+                Output 
+================================= {% endcomment %}
+
+<div class="{{ section_classes }} {{ row_classes }} {{ custom_row_classes }}" {%- if row_height_styles -%}style="{{ row_height_styles }}"{%- endif -%} data-section-type="row">
+
+    {% comment %} --- Row Background --- {% endcomment %}
+    <div class="row__bg-wrap-outer">
+        <div class="row__bg-wrap-inner">
+            <div class="row__bg">
+
+                {%- if background_image -%}
+                    {%- if row_height == 'height--auto-image' -%}
+                        <img class="row__bg-image--auto" src="{{ background_image_src }}" />
+                    {%- else -%}
+                        <div class="row__bg-image" style="{{ background_styles }}"></div>
+                    {%- endif -%}
+                {%- endif -%}
+
+                {%- if background_content -%}
+                    {{ background_content }}
+                {%- endif -%}                
+
+                <div class="row__overlay" style="{{ overlay_styles }}" ></div>
+
+            </div>
+        </div>
+    </div>
+
+    {% comment %} --- Row Height Setter --- {% endcomment %}
+    <div class="row__height-setter-wrap">
+        <div class="row__height-setter" {%- if height_setter_styles -%}style="{{ height_setter_styles }}"{%- endif -%}></div>
+    </div>
+
+    {% comment %} --- Row Content --- {% endcomment %}
+    <div class="row__content-outer">
+        <div class="row__content-inner">
+            {%- if row_content -%}
+                {{ row_content }}
+            {%- endif -%}
+        </div>
+    </div>  
+
+</div>
+
+
+
+{% comment %} =================================
+                Reset Schema 
+================================= {% endcomment %}
+
+{% comment %} --- Custom --- {% endcomment %}
+{%- assign custom_row_classes           = nil -%}
+
+{% comment %} --- Section --- {% endcomment %}
+{%- assign section_margin_top           = nil -%}
+{%- assign section_margin_bottom        = nil -%}
+{%- assign section_custom_class         = nil -%}
+
+{% comment %} --- Row --- {% endcomment %}
+{%- assign row_content_width            = nil -%}
+{%- assign row_height                   = nil -%}
+{%- assign row_padding_top              = nil -%}
+{%- assign row_padding_bottom           = nil -%}
+
+{% comment %} --- Background --- {% endcomment %}
+{%- assign background_overlay_color     = nil -%}
+{%- assign background_overlay_opacity   = nil -%}
+{%- assign background_image             = nil -%}
+{%- assign background_image_position    = nil -%}
+{%- assign background_content           = nil -%}

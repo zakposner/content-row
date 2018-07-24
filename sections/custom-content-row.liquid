@@ -1,0 +1,476 @@
+{% comment %} --- 
+
+    TODO
+        - set up row margin and padding properly
+        - row background image position not working properly
+        - mobile text align
+        - mobile section padding
+        - mobile section height (dont allow fixed? force auto?)
+        - column layer (z-index) settings?
+
+--- {% endcomment %}
+
+{%- assign content_row_positions_y = 'top,middle,bottom' | split: ',' -%}
+{%- assign content_row_positions_x = 'left,center,right' | split: ',' -%}
+
+{% capture col_content %}
+    <div class="ccr__inner-wrap"> 
+        {% comment %} - Build out columns - {% endcomment %}
+        {%- for pos_y in content_row_positions_y -%}
+                {%- for pos_x in content_row_positions_x -%} 
+
+                    {% comment %} 
+                        @bool include_col - whether or not to build column for given position
+                    {% endcomment %}
+                    {%- assign include_col = false -%} 
+
+                    {% comment %} 
+                        @int include_col - first block instance matching given position
+                    {% endcomment %}
+                    {%- assign first_index = 0 -%}
+
+                    {% comment %} - 
+                        Check to see if we need to output a column for this position. If so,
+                        quit the loop and restart it within a column at the first_index
+                    - {% endcomment %}
+                    {%- for block in section.blocks -%}
+                        {%- assign block_pos = block.settings.position | split: ' ' -%}
+                        {%- if block_pos[0] == pos_x and block_pos[1] == pos_y -%}
+
+                            {%- assign include_col = true -%}
+                            {%- assign first_index = forloop.index | minus: 1 -%}
+                            {% break %}
+
+                        {%- endif -%}
+                    {%- endfor -%}
+
+                    {% comment %} - If we have at least one match, build out a column - {% endcomment %}
+                    {%- if include_col -%}
+                        <div class="ccr-col ccr-col--{{ pos_x }} ccr-col--{{ pos_y }}" style="">
+                            {%- for block in section.blocks offset: first_index -%}
+                                {%- assign block_pos = block.settings.position | split: ' ' -%}
+                                {%- if block_pos[0] == pos_x and block_pos[1] == pos_y -%}
+
+                                    {% comment %} - pase max-width setting - {% endcomment %}
+                                    {%- assign col_max_width = '100%' -%}
+                                    {%- assign max_width_setting = block.settings.content_max_width -%}
+                                    {%- if max_width_setting contains 'px' or max_width_setting contains 'em' or max_width_setting contains 'rem' -%}
+                                        {%- assign col_max_width = max_width_setting -%}
+                                    {%- endif -%}
+
+                                    {% comment %} - Parse Type and Classes - {% endcomment %}
+                                    {%- assign content_opening_tag  = 'p' -%}
+                                    {%- assign content_closing_tag  = '/p' -%}
+                                    {%- assign content_classes      = '' -%}
+
+                                    {%- case block.type -%}
+                                        {%- when 'header' -%}
+                                            {%- assign content_opening_tag  = block.settings.header_type -%}
+                                            {%- assign content_closing_tag  = '/' | append: block.settings.header_type -%}
+
+                                        {%- when 'button' -%}
+                                            {%- assign content_opening_tag = 'a href="' | append: block.settings.link | append: '" ' -%}
+                                            {%- assign content_closing_tag  = '/a' -%}
+                                            {%- assign content_classes = 'btn' -%}
+                                            {%- if block.settings.button_block -%}
+                                                {%- assign content_classes = 'btn btn--block' -%}
+                                            {%- endif -%}
+                                        {%- else -%}
+                                            
+                                    {%- endcase -%}
+
+                                    {% comment %} - Output Content - {% endcomment %}
+                                    <{{ content_opening_tag }} class="{{ content_classes }}" style="max-width: {{ col_max_width }};">
+                                        {{ block.settings.content }}
+                                    <{{ content_closing_tag }}>
+
+                                {%- endif -%}
+                            {%- endfor -%}
+                        </div>
+                    {%- endif -%}
+
+                {%- endfor -%}
+        {%- endfor -%}
+    </div>   
+{% endcapture %}
+
+{% capture row_content %}
+    {% include 'col' %}
+{% endcapture %}
+
+{%- assign section_custom_class = 'custom-content-row' -%}
+{% include 'row' %}
+
+{%- assign col_content = nil -%}
+{%- assign row_content = nil -%}
+
+{% schema %}
+    {
+        "name": "Custom Content Row",
+        "settings": [
+            {
+                "type": "header",
+                "content": "Layout"
+            },
+            {
+                "type": "select",
+                "id": "row_content_width",
+                "label": "Section Width",
+                "options": [
+                    { "value": "page-width", "label": "Page Width" },
+                    { "value": "full-width-bg", "label": "Full Width Background" },
+                    { "value": "full-width", "label": "Full Width Content" }
+                ],
+                "default": "full-width"
+            },
+            {
+                "type": "select",
+                "id": "row_height",
+                "label": "[Row,Section,Slider] Height",
+                "options": [
+                { "group": "Fixed (Mobile Responsive)", "value": "height--x-small", "label": "X-Small" },
+                { "group": "Fixed (Mobile Responsive)", "value": "height--small", "label": "Small" },
+                { "group": "Fixed (Mobile Responsive)", "value": "height--medium", "label": "Medium" },
+                { "group": "Fixed (Mobile Responsive)", "value": "height--large", "label": "Large" },
+                { "group": "Fixed (Mobile Responsive)", "value": "height--x-large", "label": "X-Large" },
+                { "group": "Dynamic", "value": "height--auto-image", "label": "Auto (Sized by Image)" },
+                { "group": "Dynamic", "value": "height--auto-content", "label": "Auto (Sized by Content)" },
+                { "group": "Dynamic", "value": "height--ratio-4", "label": "4:1 Ratio" },
+                { "group": "Dynamic", "value": "height--ratio-3", "label": "3:1 Ratio" },
+                { "group": "Dynamic", "value": "height--ratio-2", "label": "2:1 Ratio" },
+                { "group": "Dynamic", "value": "height--ratio-1", "label": "1:1 Ratio" },
+                { "group": "Dynamic", "value": "full-screen", "label": "Full Screen" },
+                { "group": "Custom", "value": "height--custom-ratio", "label": "Custom Aspect Ratio" },
+                { "group": "Custom", "value": "height--custom-pixel", "label": "Custom Pixel Value" }
+                ],
+                "default": "height--auto-image"
+            },
+            {
+                "type": "text",
+                "id": "row_height_custom",
+                "label": "Custom Height Value"
+            },
+            {
+                "type": "text",
+                "id": "row_max_height",
+                "label": "Maximum Height"
+            },
+            {
+                "type": "text",
+                "id": "row_min_height",
+                "label": "Minimum Height"
+            },
+            {
+                "type": "text",
+                "id": "row_height_mobile",
+                "label": "Mobile Height Override"
+            },
+            {
+                "type": "header",
+                "content": "Margin"
+            },
+            {
+                "type": "select",
+                "id": "section_margin_top",
+                "label": "Section Top Margin",
+                "options": [
+                    { "value": "default", "label": "Default" },
+                    { "value": "0", "label": "None" },
+                    { "value": "small", "label": "Small" },
+                    { "value": "regular", "label": "Regular" },
+                    { "value": "large", "label": "Large" }
+                ],
+                "default": "default"
+            },
+            {
+                "type": "select",
+                "id": "section_margin_bottom",
+                "label": "Section Bottom Margin",
+                "options": [
+                    { "value": "default", "label": "Default" },
+                    { "value": "0", "label": "None" },
+                    { "value": "small", "label": "Small" },
+                    { "value": "regular", "label": "Regular" },
+                    { "value": "large", "label": "Large" }
+                ],
+                "default": "default"
+            },
+            {
+                "type": "header",
+                "content": "Padding"
+            },
+            {
+                "type": "select",
+                "id": "row_padding_top",
+                "label": "Row Top Padding",
+                "options": [
+                    { "value": "default", "label": "Default" },
+                    { "value": "0", "label": "None" },
+                    { "value": "small", "label": "Small" },
+                    { "value": "regular", "label": "Regular" },
+                    { "value": "large", "label": "Large" }
+                ],
+                "default": "default"
+            },
+            {
+                "type": "select",
+                "id": "row_padding_bottom",
+                "label": "Row Bottom Padding",
+                "options": [
+                    { "value": "default", "label": "Default" },
+                    { "value": "0", "label": "None" },
+                    { "value": "small", "label": "Small" },
+                    { "value": "regular", "label": "Regular" },
+                    { "value": "large", "label": "Large" }
+                ],
+                "default": "default"
+            },
+            {
+                "type": "header",
+                "content": "Background"
+            },
+            {
+                "type": "image_picker",
+                "id": "background_image",
+                "label": "Background Image"
+            },
+            {
+                "type": "select",
+                "id": "background_position",
+                "label": "Background Position",
+                "options": [
+                    { "value": "left top", "label": "Left Top" },
+                    { "value": "left center", "label": "Left Center" },
+                    { "value": "left bottom", "label": "Left Bottom" },
+                    { "value": "right top", "label": "Right Top" },
+                    { "value": "right center", "label": "Right Center" },
+                    { "value": "right bottom", "label": "Right Bottom" },
+                    { "value": "center top", "label": "Center Top" },
+                    { "value": "center center", "label": "Center Center" },
+                    { "value": "center bottom", "label": "Center Bottom" }
+                ],
+                "default": "center center"
+            }, 
+            {
+                "type": "color",
+                "id": "background_overlay_color",
+                "label": "Overlay Color",
+                "default": "#000000"
+            },
+            {
+                "type": "range",
+                "id": "background_overlay_opacity",
+                "label": "Overlay Strength",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "default": 60
+            }
+        ],
+        "blocks": [
+            {
+                "name": "header",
+                "type": "header",
+                "settings": [
+                    {
+                        "type": "text",
+                        "id": "title",
+                        "label": "Admin Title (Internal use Only)"
+                    },
+                    {
+                        "type": "text",
+                        "id": "content",
+                        "label": "Header Text"
+                    },
+                    {
+                        "type": "select",
+                        "id": "header_type",
+                        "label": "Header Type",
+                        "options": [
+                            { "value": "h2", "label": "h2" },
+                            { "value": "h3", "label": "h3" },
+                            { "value": "h4", "label": "h4" },
+                            { "value": "h5", "label": "h5" },
+                            { "value": "h6", "label": "h6" }
+                        ],
+                        "default": "h2"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Positioning"
+                    },
+                    {
+                        "type": "select",
+                        "id": "position",
+                        "label": "Header Position",
+                        "options": [
+                            { "value": "left top",      "label": "Left Top" },
+                            { "value": "left middle",   "label": "Left Middle" },
+                            { "value": "left bottom",   "label": "Left Bottom" },
+                            { "value": "right top",     "label": "Right Top" },
+                            { "value": "right middle",  "label": "Right Middle" },
+                            { "value": "right bottom",  "label": "Right Bottom" },
+                            { "value": "center top",    "label": "Center Top" },
+                            { "value": "center middle", "label": "Center Middle" },
+                            { "value": "center bottom", "label": "Center Bottom" }
+                        ],
+                        "default": "center middle"
+                    },
+                    {
+                        "type": "select",
+                        "id": "alignment",
+                        "label": "Text Alignment",
+                        "options": [
+                            { "value": "left",   "label": "Left" },
+                            { "value": "right",  "label": "Right" },
+                            { "value": "center", "label": "Center" }
+                        ],
+                        "default": "center"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Content Width"
+                    },
+                    {
+                        "type": "text",
+                        "id": "content_max_width",
+                        "label": "Max Width",
+                        "info": "Enter a number with px"
+                    }
+                ]
+            },
+            {
+                "name": "content",
+                "type": "content",
+                "settings": [
+                    {
+                        "type": "text",
+                        "id": "title",
+                        "label": "Admin Title (Internal use Only)"
+                    },
+                    {
+                        "type": "textarea",
+                        "id": "content",
+                        "label": "Content Text"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Positioning"
+                    },
+                    {
+                        "type": "select",
+                        "id": "position",
+                        "label": "Header Position",
+                        "options": [
+                            { "value": "left top",      "label": "Left Top" },
+                            { "value": "left middle",   "label": "Left Middle" },
+                            { "value": "left bottom",   "label": "Left Bottom" },
+                            { "value": "right top",     "label": "Right Top" },
+                            { "value": "right middle",  "label": "Right Middle" },
+                            { "value": "right bottom",  "label": "Right Bottom" },
+                            { "value": "center top",    "label": "Center Top" },
+                            { "value": "center middle", "label": "Center Middle" },
+                            { "value": "center bottom", "label": "Center Bottom" }
+                        ],
+                        "default": "center middle"
+                    },
+                    {
+                        "type": "select",
+                        "id": "alignment",
+                        "label": "Text Alignment",
+                        "options": [
+                            { "value": "left",   "label": "Left" },
+                            { "value": "right",  "label": "Right" },
+                            { "value": "center", "label": "Center" }
+                        ],
+                        "default": "center"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Content Width"
+                    },
+                    {
+                        "type": "text",
+                        "id": "content_max_width",
+                        "label": "Max Width",
+                        "info": "Enter a number with px"
+                    }
+                ]
+            },
+            {
+                "name": "button",
+                "type": "button",
+                "settings": [
+                    {
+                        "type": "text",
+                        "id": "title",
+                        "label": "Admin Title (Internal use Only)"
+                    },
+                    {
+                        "type": "text",
+                        "id": "content",
+                        "label": "Button Text"
+                    },
+                    {
+                        "type": "url",
+                        "id": "link",
+                        "label": "Button Link"
+                    },
+                    {
+                        "type": "checkbox",
+                        "id": "button_block",
+                        "label": "Button fills row"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Positioning"
+                    },
+                    {
+                        "type": "select",
+                        "id": "position",
+                        "label": "Header Position",
+                        "options": [
+                            { "value": "left top",      "label": "Left Top" },
+                            { "value": "left middle",   "label": "Left Middle" },
+                            { "value": "left bottom",   "label": "Left Bottom" },
+                            { "value": "right top",     "label": "Right Top" },
+                            { "value": "right middle",  "label": "Right Middle" },
+                            { "value": "right bottom",  "label": "Right Bottom" },
+                            { "value": "center top",    "label": "Center Top" },
+                            { "value": "center middle", "label": "Center Middle" },
+                            { "value": "center bottom", "label": "Center Bottom" }
+                        ],
+                        "default": "center middle"
+                    },
+                    {
+                        "type": "select",
+                        "id": "alignment",
+                        "label": "Text Alignment",
+                        "options": [
+                            { "value": "left",   "label": "Left" },
+                            { "value": "right",  "label": "Right" },
+                            { "value": "center", "label": "Center" }
+                        ],
+                        "default": "center"
+                    },
+                    {
+                        "type": "header",
+                        "content": "Content Width"
+                    },
+                    {
+                        "type": "text",
+                        "id": "content_max_width",
+                        "label": "Max Width",
+                        "info": "Enter a number with px"
+                    }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "Custom Content Row",
+                "category": "Custom Layout"
+            }
+        ]
+    }
+{% endschema %}

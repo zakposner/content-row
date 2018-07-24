@@ -1,0 +1,91 @@
+
+{% comment %} 
+
+    Schema Parse - Row 
+
+        @return     (string) row_classes - set the height, width, and padding, applied to .row
+                    (css) row_height_styles - sets the min-height, max-height, applied to .row
+                    (css) height_setter_styles - custom px, custom aspect ratio, applied to .row__height-setter
+{% endcomment %}
+
+{% comment %} =================================
+                Parse Schema 
+================================= {% endcomment %}
+
+{% comment %} --- Row Width --- {% endcomment %}
+{%- unless row_content_width -%}
+    {%- assign row_content_width = 'page-width' -%}     {% comment %} - Default Value - {% endcomment %}
+    {%- if settings_object.row_content_width -%}
+        {%- assign row_content_width = settings_object.row_content_width -%}
+    {%- endif -%}    
+{%- endunless -%}
+
+{% comment %} --- Row Height --- {% endcomment %}
+{%- unless row_height -%}
+    {%- assign row_height = "height--auto-content" -%}    {% comment %} - Default Value - {% endcomment %}
+    {%- if settings_object.row_height -%}
+        {%- assign row_height = settings_object.row_height -%}
+    {%- endif -%}
+{%- endunless -%}
+
+{% comment %} --- Row Padding Top --- {% endcomment %}
+{%- unless row_padding_top -%}
+    {%- assign row_padding_top = 0 -%}
+    {%- if settings_object.row_padding_top -%}
+        {%- assign row_padding_top = settings_object.row_padding_top -%}
+    {%- endif -%}
+{%- endunless -%}
+
+{% comment %} --- Row padding Bottom --- {% endcomment %}
+{%- unless row_padding_bottom -%}
+    {%- assign row_padding_bottom = 0 -%}
+    {%- if settings_object.row_padding_bottom -%}
+        {%- assign row_padding_bottom = settings_object.row_padding_bottom -%}
+    {%- endif -%}
+{%- endunless -%}
+
+
+{% comment %} =================================
+                Output Classes 
+================================= {% endcomment %}
+
+{% capture row_classes %}
+ row row--width-{{ row_content_width }} row--{{ row_height }} row--pt-{{ row_padding_top }} row--pb-{{ row_padding_bottom }}
+{% endcapture %}
+
+{% comment %} - Clean up class formatting - {% endcomment %}
+{%- assign row_classes = row_classes | strip -%}
+
+
+{% comment %} =================================
+                Output Styles 
+================================= {% endcomment %}
+
+{% comment %} --- Height Setter Styles--- {% endcomment %}
+{%- assign height_setter_styles = false -%}
+{%- unless settings_object.row_height_custom == blank -%}
+
+    {% comment %} - Custom Pixel Height - {% endcomment %}
+    {%- if settings_object.row_height == 'height--custom-pixel' -%}     
+        {% capture height_setter_styles %}height:{{ settings_object.row_height_custom }}px;{% endcapture %}
+            
+    {% comment %} - Custom Ratio Height - {% endcomment %}
+    {%- elsif settings_object.row_height == 'height--custom-ratio' -%}
+        {% assign custom_aspect_ratio = 100000 | divided_by: settings_object.row_height_custom | times: 0.001 %}
+        {% capture height_setter_styles %}padding-top:{{ custom_aspect_ratio }}%;{% endcapture %}
+
+    {%- endif -%}
+{%- endunless -%}
+
+{% comment %} --- Row Height Styles --- {% endcomment %}
+{%- assign row_height_styles = false -%}
+
+{%- unless settings_object.row_max_height == blank and settings_object.row_min_height == blank -%}
+    {% assign style_settings_prefix = 'row_' %}
+    {% assign style_settings = 'min_height;max_height' %}
+    {% include 'onyx-fn-attr-style' %}
+
+    {%- assign row_height_styles = style_attr -%}
+{%- endunless -%}
+
+

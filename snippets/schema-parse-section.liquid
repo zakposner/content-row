@@ -1,0 +1,63 @@
+{% comment %} 
+
+    Schema Parse - Section 
+
+        @args       (string) section_margin_top
+                    (string) section_margin_bottom
+                    (string) section_title
+                    (string) section_subtitle
+
+        @return     (string) section_classes - sets the margin of the section
+                    (string) section_title
+                    (string) section_subtitle
+{% endcomment %}
+
+{% comment %} =================================
+                Classes 
+================================= {% endcomment %}
+
+{% comment %}
+    Margin Setting Priority
+        1. override value (passing in a section_margin_top / section_margin_bottom ),
+        2. Section override settings (section.settings)
+        3. Theme defaults (settings)
+{% endcomment %}
+
+{%- unless section_margin_top -%}
+    {%- assign section_margin_top = settings.section_margin_top -%}
+    {%- unless settings_object.section_margin_top == 'default' -%}
+        {%- assign section_margin_top = settings_object.section_margin_top -%}
+    {%- endunless -%}
+{%- endunless -%}
+
+{%- unless section_margin_bottom -%}
+    {%- assign section_margin_bottom = settings.section_margin_bottom -%}
+    {%- unless settings_object.section_margin_bottom == 'default' -%}
+        {%- assign section_margin_bottom = settings_object.section_margin_bottom -%}
+    {%- endunless -%}
+{%- endunless -%}
+
+{% capture section_classes %}
+ section section--mt-{{ section_margin_top }} section--mb-{{ section_margin_bottom }} {% if section_custom_class %}{{ section_custom_class }}{% endif %}
+{% endcapture %}
+
+{% comment %} - Clean up class formatting - {% endcomment %}
+{%- assign section_classes = section_classes | strip -%}
+
+{% comment %} =================================
+                Titles 
+================================= {% endcomment %}
+
+{%- unless section_title -%}
+    {%- assign section_title = false -%}
+    {%- if settings_object.section_title -%}
+        {%- assign section_title = settings_object.section_title -%}
+    {%- endif -%}
+{%- endunless -%}
+
+{%- unless section_subtitle -%}
+    {%- assign section_subtitle = false -%}
+    {%- if settings_object.section_subtitle -%}
+        {%- assign section_subtitle = settings_object.section_subtitle -%}
+    {%- endif -%}
+{%- endunless -%}

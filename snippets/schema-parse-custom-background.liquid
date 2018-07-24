@@ -1,0 +1,66 @@
+{% comment %} 
+
+    Schema Parse - Custom Background 
+
+        @args       background_overlay_color
+                    background_overlay_opacity
+                    background_image
+                    background_image_position
+
+        @return     (css) overlay_styles - background color, opacity,
+                    (string) background_image_src
+                    (css) background_styles - background-image, background-position
+{% endcomment %}
+
+
+{% comment %} =================================
+                Image 
+================================= {% endcomment %}
+
+{%- unless background_image -%}
+    {%- if settings_object.background_image != blank -%}
+        {%- assign background_image = settings_object.background_image -%}
+    {%- endif -%}
+{%- endunless -%}
+
+{%- assign background_image_size = '1920x' -%}
+{%- if row_content_width == 'page-width' -%}
+    {%- assign background_image_size = '1200x' -%}
+{%- endif -%}
+
+{%- assign background_image_src = background_image | img_url: background_image_size | format: 'jpeg' -%}
+
+
+{% comment %} =================================
+                Styles 
+================================= {% endcomment %}
+
+{% comment %} --- Overlay --- {% endcomment %}
+{%- unless background_overlay_color -%}
+    {%- assign background_overlay_color = 'transparent' -%}
+    {%- if settings_object.background_overlay_color != blank -%}
+        {%- assign background_overlay_color = settings_object.background_overlay_color -%}
+    {%- endif -%}
+{%- endunless -%}
+
+{%- unless background_overlay_opacity -%}
+    {%- assign background_overlay_opacity = settings_object.background_overlay_opacity -%}
+{%- endunless -%}
+
+{% comment %} Parse opacity value {% endcomment %}
+{%- assign background_overlay_opacity = background_overlay_opacity | divided_by: 100.00 -%}
+
+{% capture overlay_styles %}
+ background-color: {{ background_overlay_color }}; opacity: {{ background_overlay_opacity }};
+{% endcapture %}
+
+
+{% comment %} --- Background --- {% endcomment %}
+{%- unless background_image_position -%}
+    {%- assign background_image_position = settings_object.background_position -%}
+{%- endunless -%}
+
+{% assign background_styles = false %}
+{%- unless row_height == 'height--auto-image' -%}
+    {% capture background_styles %}background-image: url('{{ background_image_src }}'); background-position: {{ background_image_position }};{% endcapture %}
+{%- endunless -%}
